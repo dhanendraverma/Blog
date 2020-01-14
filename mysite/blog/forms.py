@@ -1,27 +1,23 @@
-from django.db import models
-from django.utils import timezone
-from django.core.urlreslovers import reverse
+from django import forms
+from blog.models import Post,Comment
 
-class Post(models.Model):
-    author = models.ForeignKey('auth.User')
-    title = models.CharField(max_length=200)
-    text = models.TextField()
-    created_date = models.DateTimeField(default=timezone.now())
-    published_date = models.DateTimeField(blank=True,null=True)
+class PostForm(forms.ModelForm):
+    class Meta():
+        model = Post
+        fields = ['author','title','text']
 
-    def publish(self):
-        self.published_date = timezone.now()
-        self.save()
+        widgets = {
+            'title':forms.TextInput(attrs={'class':'textnputclass'}),
+            'text':forms.TextInput(attrs={'class':'editabel medium-editor-textarea postcontent'})
+        }
 
-    def approved_comments(self):
-        return self.comments.filter(approved_comment=True)
+class CommentForm(forms.ModelForm):
+    class Meta():
+        model = Comment
+        fields = ['author','text']
 
-    def __str__(self):
-        return self.title
+        widgets = {
+            'author':forms.TextInput(attrs={'class':'textnputclass'}),
+            'text':forms.TextInput(attrs={'class':'editabel medium-editor-textarea'})
+        }
 
-class Comment(models.Model):
-    post = models.ForeignKey('blog.Post',related_name='comments')
-    author = models.CharField(max_length=200)
-    text = models.TextField()
-    created_date = models.DateTimeField(default=timezone.now())
-    approved_comment = models.BooleanField(default=False)
