@@ -1,7 +1,8 @@
 from django.views import (TemplateView,ListView,DetailView,CreateView,UpdateView,DeleteView)
 from blog.models import Post,Comment
 from blog.forms import PostForm,CommentForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import mixins.LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.shortcuts import render,redirect,get_object_or_404
 from django.utils import timezone
@@ -44,6 +45,12 @@ class DraftListView(LoginRequiredMixin,ListView):
         return Post.objects.filter(published_date_isnull=True).order_by('created_date')
 
 @login_required
+def post_publish(request,pk):
+    post = get_object_or_404(Post,pk=pk)
+    post.publish()
+    return redirect('post_publish',pk=pk)
+
+@login_required
 def add_comment_to_post(request,pk):
     post = get_object_or_404(Post,pk)
     if request.method == 'POST':
@@ -57,7 +64,6 @@ def add_comment_to_post(request,pk):
         form = CommentForm()
     return render(request,'blog/comment_form.html',{'form':form})
 
-
 @login_required
 def comment_approve(request,pk):
     comment = get_object_or_404(Comment,pk=pk)
@@ -65,7 +71,7 @@ def comment_approve(request,pk):
     return redirect('post_detail',pk=comment.post.pk)
 
 @login_required
-def comment_delete(request,pk):
+def comment_remove(request,pk):
     comment = get_object_or_404(Comment,pk=pk)
     post_pk = comment.post.pk
     comment.delete()
