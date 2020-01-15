@@ -3,6 +3,8 @@ from blog.models import Post,Comment
 from blog.forms import PostForm,CommentForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
+from django.shortcuts import render,redirect,get_object_or_404
+from django.utils import timezone
 
 
 class AboutView(TemplateView):
@@ -40,3 +42,17 @@ class DraftListView(LoginRequiredMixin,ListView):
 
     def get_queryset(self):
         return Post.objects.filter(published_date_isnull=True).order_by('created_date')
+
+@login_required
+def add_comment_to_post(request,pk):
+    post = get_object_or_404(Post,pk)
+    if request.method == 'POST':
+        form = CommentForm(request.Post)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.save()
+            return redirect('post_detail',pk=post.pk)
+    else:
+        form = CommentForm()
+    return render(request,'blog/comment_form.html',{'form':form})
